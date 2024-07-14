@@ -1,44 +1,25 @@
 import os
-import requests
+import openai
 
-# Ustawienia API OpenAI
-api_key = os.getenv("OPENAI_API_KEY")
-endpoint = "https://faustyna.openai.azure.com/"
+# Ustawienia dla API Azure OpenAI
+openai.api_type = "azure"
+openai.api_base = "https://zasob.openai.azure.com/"
+openai.api_version = "2023-09-15-preview"
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
-def generate_response(prompt):
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {api_key}"
-    }
-    data = {
-        "model": "gpt-3.5-turbo",
-        "messages": [{"role": "user", "content": prompt}]
-    }
-    response = requests.post(f"{endpoint}/chat/completions", json=data, headers=headers)
-    
-    if response.status_code != 200:
-        print(f"Error: Received status code {response.status_code}")
-        return None
-    
-    try:
-        response_data = response.json()
-        return response_data["choices"][0]["message"]["content"]
-    except KeyError as e:
-        print(f"Error: KeyError - {e}")
-        return None
+print("napisz co chesz wygenerować->")
+answer=input()
+# Wywołanie API dla uzyskania odpowiedzi
+response = openai.Completion.create(
+    engine="zasob",
+    prompt=answer,
+    temperature=1,
+    max_tokens=100,
+    top_p=0.5,
+    frequency_penalty=0,
+    presence_penalty=0,
+    stop=None
+)
 
-def main():
-    while True:
-        prompt = input("\nWyjaśnij definicję z fizyki lub zadaj pytanie: ")
-        if prompt.lower() in ['quit', 'exit', 'q']:
-            break
-        
-        response = generate_response(prompt)
-        
-        if response:
-            print(f"Odpowiedź: {response}")
-        else:
-            print("Wystąpił błąd podczas przetwarzania zapytania.")
-
-if __name__ == "__main__":
-    main()
+# Wyświetlenie odpowiedzi
+print(response["choices"][0]["text"])
